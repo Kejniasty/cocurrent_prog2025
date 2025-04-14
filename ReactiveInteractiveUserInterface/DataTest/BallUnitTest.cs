@@ -7,6 +7,8 @@
 //  https://github.com/mpostol/TP/discussions/182
 //
 //_____________________________________________________________________________________________________________________________________
+// Modified by Lech Czochra
+// Edited the MoveTestMethod to be more in line with the new structure of the project
 
 namespace TP.ConcurrentProgramming.Data.Test
 {

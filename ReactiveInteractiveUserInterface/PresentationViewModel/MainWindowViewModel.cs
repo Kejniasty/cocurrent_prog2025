@@ -6,6 +6,8 @@
 //  comment using the discussion panel at
 //  https://github.com/mpostol/TP/discussions/182
 //__________________________________________________________________________________________
+// Modified by Lech Czochra
+// Modified the class to include the new way of creating balls, as well as handling the GUI interactions
 
 using System;
 using System.Collections.ObjectModel;
@@ -33,6 +35,7 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
 
         #region public API
 
+        /// Starts the simulation with the specified number of balls
         public void Start()
         {
             if (Disposed)
@@ -42,6 +45,7 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
         }
         public ObservableCollection<ModelIBall> Balls { get; } = new ObservableCollection<ModelIBall>();
 
+        // Holds info about the number of balls to be created
         public int NumberOfBalls
         {
             get => _numberOfBalls;

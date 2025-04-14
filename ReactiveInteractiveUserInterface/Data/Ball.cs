@@ -7,6 +7,8 @@
 //  https://github.com/mpostol/TP/discussions/182
 //
 //_____________________________________________________________________________________________________________________________________
+// Modified by Lech Czochra
+// Added HandleCollisions method
 
 namespace TP.ConcurrentProgramming.Data
 {

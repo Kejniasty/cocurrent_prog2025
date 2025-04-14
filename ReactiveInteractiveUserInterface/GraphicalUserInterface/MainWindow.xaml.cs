@@ -6,6 +6,8 @@
 //  comment using the discussion panel at
 //  https://github.com/mpostol/TP/discussions/182
 //__________________________________________________________________________________________
+// Modified by Lech Czochra
+// edited the MainWindow class to include the new way of creating balls
 
 using System;
 using System.Reflection.Emit;

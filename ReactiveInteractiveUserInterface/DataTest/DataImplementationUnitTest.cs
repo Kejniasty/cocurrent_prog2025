@@ -7,6 +7,8 @@
 //  https://github.com/mpostol/TP/discussions/182
 //
 //_____________________________________________________________________________________________________________________________________
+// Modified by Lech Czochra
+// Added a new test for colliding balls, has to be developed further
 
 namespace TP.ConcurrentProgramming.Data.Test
 {

@@ -7,6 +7,8 @@
 //  https://github.com/mpostol/TP/discussions/182
 //
 //_____________________________________________________________________________________________________________________________________
+// Modified by Lech Czochra
+// Added HandleCollisions method, as well as modifiying the Start method
 
 using System;
 using System.Collections.ObjectModel;
