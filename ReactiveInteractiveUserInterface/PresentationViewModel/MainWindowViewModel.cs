@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 using TP.ConcurrentProgramming.Presentation.Model;
 using TP.ConcurrentProgramming.Presentation.ViewModel.MVVMLight;
 using ModelIBall = TP.ConcurrentProgramming.Presentation.Model.IBall;
@@ -32,14 +33,24 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
 
         #region public API
 
-        public void Start(int numberOfBalls)
+        public void Start()
         {
             if (Disposed)
                 throw new ObjectDisposedException(nameof(MainWindowViewModel));
-            ModelLayer.Start(numberOfBalls);
+            ModelLayer.Start(NumberOfBalls);
             Observer.Dispose();
         }
         public ObservableCollection<ModelIBall> Balls { get; } = new ObservableCollection<ModelIBall>();
+
+        public int NumberOfBalls
+        {
+            get => _numberOfBalls;
+            set
+            {
+                _numberOfBalls = value;
+                RaisePropertyChanged();
+            }
+        }
 
         #endregion public API
 
@@ -56,8 +67,6 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
                     ModelLayer.Dispose();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
                 Disposed = true;
             }
         }
@@ -77,6 +86,10 @@ namespace TP.ConcurrentProgramming.Presentation.ViewModel
         private IDisposable Observer = null;
         private ModelAbstractApi ModelLayer;
         private bool Disposed = false;
+        private int _numberOfBalls;
+
+        private RelayCommand startCommand;
+        public ICommand StartCommand => startCommand ??= new RelayCommand(Start);
 
         #endregion private
     }

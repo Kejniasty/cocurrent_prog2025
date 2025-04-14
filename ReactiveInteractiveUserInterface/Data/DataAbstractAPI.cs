@@ -41,11 +41,11 @@ namespace TP.ConcurrentProgramming.Data
   }
 
   public interface IVector
-  {
-    /// <summary>
-    /// The X component of the vector.
-    /// </summary>
-    double x { get; init; }
+    {
+        /// <summary>
+        /// The X component of the vector.
+        /// </summary>
+        double x { get; init; }
 
     /// <summary>
     /// The y component of the vector.

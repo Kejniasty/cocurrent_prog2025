@@ -42,27 +42,30 @@ namespace TP.ConcurrentProgramming.Data
             double newX = PositionBackingField.x + delta.x * scale;
             double newY = PositionBackingField.y + delta.y * scale;
             double diameter = 2 * Radius;
-            double maxX = 392.0 - diameter; // Ramka ma 400 na 420
-            double maxY = 412.0 - diameter;
+            // 420x420, test driven border
+            double minX = -228 + diameter; 
+            double minY = -435 + diameter;
+            double maxX = 208 - diameter; 
+            double maxY = 0 - diameter;
             Vector newVelocity = (Vector)Velocity;
 
-            if (newX < 0) // Jeśli nowa pozycja kulki wychodziłaby za lewą ściankę, zmieniamy kierunek prędkości, żeby kulka się odbiła
+            if (newX < minX) // Left Border
             {
-                newX = 0; // I ustawiamy pozycje tu na 0 lub na max w zależności od ścianki
+                newX = minX;
                 newVelocity = new Vector(-newVelocity.x, newVelocity.y);
             }
-            else if (newX > maxX) // Tak samo, tylko dla prawej ścianki
+            else if (newX > maxX) // Right Border
             {
                 newX = maxX;
                 newVelocity = new Vector(-newVelocity.x, newVelocity.y);
             }
 
-            if (newY < 0) // Dla dolnej ścianki
+            if (newY < minY) // Lower Border
             {
-                newY = 0;
+                newY = minY;
                 newVelocity = new Vector(newVelocity.x, -newVelocity.y);
             }
-            else if (newY > maxY) // Dla górnej ścianki
+            else if (newY > maxY) // Upper Border
             {
                 newY = maxY;
                 newVelocity = new Vector(newVelocity.x, -newVelocity.y);

@@ -8,6 +8,7 @@
 //__________________________________________________________________________________________
 
 using System;
+using System.Reflection.Emit;
 using System.Windows;
 using TP.ConcurrentProgramming.Presentation.ViewModel;
 
@@ -25,7 +26,6 @@ namespace TP.ConcurrentProgramming.PresentationView
             MainWindowViewModel viewModel = (MainWindowViewModel)DataContext;
             double screenWidth = SystemParameters.PrimaryScreenWidth;
             double screenHeight = SystemParameters.PrimaryScreenHeight;
-            viewModel.Start(random.Next(5, 10));
         }
         /// <summary>
         /// Raises the <seealso cref="System.Windows.Window.Closed"/> event.

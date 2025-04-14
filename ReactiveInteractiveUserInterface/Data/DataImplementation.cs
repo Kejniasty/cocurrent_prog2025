@@ -9,6 +9,7 @@
 //_____________________________________________________________________________________________________________________________________
 
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace TP.ConcurrentProgramming.Data
@@ -88,7 +89,7 @@ namespace TP.ConcurrentProgramming.Data
         {
             HandleCollisions();
 
-            foreach (Ball item in BallsList)
+            foreach (Ball item in BallsList.ToList())
             {
                 item.Move((Vector)item.Velocity);
             }
