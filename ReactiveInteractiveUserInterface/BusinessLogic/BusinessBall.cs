@@ -8,6 +8,8 @@
 //
 //_____________________________________________________________________________________________________________________________________
 
+using System.Numerics;
+
 namespace TP.ConcurrentProgramming.BusinessLogic
 {
   internal class Ball : IBall
@@ -21,6 +23,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic
 
     public event EventHandler<IPosition>? NewPositionNotification;
 
+
     #endregion IBall
 
     #region private
@@ -29,6 +32,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic
     {
       NewPositionNotification?.Invoke(this, new Position(e.x, e.y));
     }
+
 
     #endregion private
   }

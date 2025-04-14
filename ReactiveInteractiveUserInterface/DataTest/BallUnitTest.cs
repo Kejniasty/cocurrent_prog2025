@@ -23,7 +23,7 @@ namespace TP.ConcurrentProgramming.Data.Test
     [TestMethod]
     public void MoveTestMethod()
     {
-      Vector initialPosition = new(10.0, 10.0);
+      Vector initialPosition = new(10.0, -50.0);
       Ball newInstance = new(initialPosition, new Vector(0.0, 0.0));
       IVector curentPosition = new Vector(0.0, 0.0);
       int numberOfCallBackCalled = 0;

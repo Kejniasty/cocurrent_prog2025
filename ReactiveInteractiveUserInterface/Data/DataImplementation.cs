@@ -32,22 +32,24 @@ namespace TP.ConcurrentProgramming.Data
                 throw new ArgumentNullException(nameof(upperLayerHandler));
             Random random = new Random();
 
-            // Lista wszystkich możliwych kombinacji prędkości (do przemyślenia)
+            // List of example possible velocities
             Vector[] possibleVelocities = new Vector[]
             {
              new Vector(90.0, 45.0),    
-             new Vector(-90.0, -45.0), 
              new Vector(90.0, -45.0),   
-             new Vector(-90.0, 45.0),  
              new Vector(90.0, 45.0),    
-             new Vector(-45.0, -90.0),  
-             new Vector(45.0, -90.0),  
-             new Vector(-45.0, 90.0)    
+             new Vector(45.0, -90.0), 
+             new Vector(45.0, 90.0),
+             new Vector(-45.0, 90.0),
+             new Vector(-90.0, -45.0),
+             new Vector(-90.0, 45.0),
+             new Vector(-45.0, -90.0)
             };
 
-            for (int i = 0; i < numberOfBalls; i++) // Tworzenie kulek, losowanie pozycji i prędkości startowej 
+            // Create balls with random starting positions and velocities
+            for (int i = 0; i < numberOfBalls; i++) 
             {
-                Vector startingPosition = new(random.Next(100, 300), random.Next(100, 320)); 
+                Vector startingPosition = new(random.Next(-210, 200), random.Next(-430, 0)); 
                 Vector initialVelocity = possibleVelocities[random.Next(possibleVelocities.Length)];
                 Ball newBall = new(startingPosition, initialVelocity);
                 upperLayerHandler(startingPosition, newBall);
@@ -110,10 +112,12 @@ namespace TP.ConcurrentProgramming.Data
                     double dy = ball2.Position.y - ball1.Position.y;
                     double distance = Math.Sqrt(dx * dx + dy * dy);
 
-                    // Sprawdzamy, czy kulki się stykają (odległość mniejsza lub równa sumie promieni)
+                    // Balls are colliding
                     if (distance <= (ball1.Radius + ball2.Radius))
                     {
-                        if (distance == 0) // Unikamy dzielenia przez zero
+
+                        // Avoiding division by zero
+                        if (distance == 0)
                         {
                             dx = 1.0;
                             dy = 0.0;
@@ -122,20 +126,21 @@ namespace TP.ConcurrentProgramming.Data
                         double nx = dx / distance;
                         double ny = dy / distance;
 
-                        // Obliczamy względną prędkość
+                        // Calculate the relative velocity
                         double dvx = ball2.Velocity.x - ball1.Velocity.x;
                         double dvy = ball2.Velocity.y - ball1.Velocity.y;
 
-                        // Obliczamy składową prędkości wzdłuż wektora kolizji
+                        // Calculate the dot product of the relative velocity and the normal vector
                         double dotProduct = dvx * nx + dvy * ny;
 
-                        // Jeśli kulki zbliżają się do siebie (dotProduct < 0), obliczamy nowe prędkości
+                        // if the dot product is negative, the balls are moving towards each other
                         if (dotProduct < 0)
                         {
-                            // Zakładamy, że kulki mają tę samą masę (sprężyste zderzenie)
-                            double impulse = 2 * dotProduct / 2.0; // Dzielimy przez 2, bo masa = 1 dla obu kulek
+                            // let's say the mass of both balls is 1
+                            // we divide by 2.0 because both balls have the same mass
+                            double impulse = 2 * dotProduct / 2.0;
 
-                            // Aktualizujemy prędkości
+                            // New velocities after collision
                             ball1.Velocity = new Vector(
                               ball1.Velocity.x + impulse * nx,
                               ball1.Velocity.y + impulse * ny
@@ -145,7 +150,7 @@ namespace TP.ConcurrentProgramming.Data
                               ball2.Velocity.y - impulse * ny
                             );
 
-                            // Rozdzielamy kulki, aby się nie skleiły
+                            // The balls are overlapping, so we need to separate them
                             double overlap = (ball1.Radius + ball2.Radius - distance) / 2;
                             ball1.UpdatePosition(new Vector(
                               ball1.Position.x - overlap * nx,
