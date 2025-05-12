@@ -18,7 +18,7 @@ namespace Logic
         public LogicApi()
         {
             _dataAPI = DataAbstractAPI.CreateDataAPI();
-            Board = _dataAPI.GetBoardData(500, 500, -13, -13);
+            Board = _dataAPI.GetBoardData(496, 497, 3, 3);
 
             // Pass the BoardData instance to BallLogic using BallLogic.SetBoardData
             BallLogic.SetBoardData(Board);
@@ -40,7 +40,7 @@ namespace Logic
 
                     while (true)
                     {
-                        Thread.Sleep(5);
+                        Thread.Sleep(4);
 
                         try
                         {
@@ -57,8 +57,10 @@ namespace Logic
                         foreach (BallLogic otherBall in ballsSnapshot)
                         {
                             if (ball == otherBall) continue;
-                            if (ball.CollidesWith(otherBall))
-                            { 
+
+                            // Ensure only one direction of the collision is handled
+                            if (ball.Id < otherBall.Id && ball.CollidesWith(otherBall))
+                            {
                                 ball.HandleCollision(otherBall);
                             }
                         }
@@ -85,10 +87,10 @@ namespace Logic
             Balls.Clear();
         }
 
-        public override BallLogic CreateBall(Vector2 pos, int radius)
+        public override BallLogic CreateBall(Vector2 pos, int radius, int id)
         {
             BallData ballData =
-                _dataAPI.GetBallData(pos, new Vector2((float)0.0034, (float)0.0034), radius, radius / 2);
+                _dataAPI.GetBallData(pos, new Vector2((float)0.0034, (float)0.0034), radius, radius / 2, id);
             BallLogic ballLogic = new BallLogic(ballData);
             Balls.Add(ballLogic);
 
@@ -103,9 +105,9 @@ namespace Logic
             {
                 float speed = 0.0005f;
                 float radius = GenerateRandomFloatInRange(rnd, 10f, 30f);
-                Vector2 pos = GenerateRandomVector2InRange(rnd, 0, Board.Width - radius, 0, Board.Height - radius);
+                Vector2 pos = GenerateRandomVector2InRange(rnd, radius, Board.Width - radius, radius, Board.Height - radius);
                 Vector2 vel = GenerateRandomVector2InRange(rnd, -speed, speed, -speed, speed);
-                BallData ballData = _dataAPI.GetBallData(pos, vel, radius, radius / 2);
+                BallData ballData = _dataAPI.GetBallData(pos, vel, radius, radius / 2, i);
                 BallLogic ballLogic = new BallLogic(ballData);
                 Balls.Add(ballLogic);
             }

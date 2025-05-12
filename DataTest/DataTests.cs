@@ -17,7 +17,7 @@ namespace Tests
             var weight = 2.5f;
 
             // Act
-            var ballData = dataAPI.GetBallData(position, velocity, radius,weight);
+            var ballData = dataAPI.GetBallData(position, velocity, radius,weight, 1);
 
             // Assert
             Assert.AreEqual(position, ballData.Position);

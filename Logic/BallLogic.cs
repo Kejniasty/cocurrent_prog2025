@@ -25,8 +25,11 @@ public class BallLogic : INotifyPropertyChanged
 
     public float X => _ballData.Position.X;
     public float Y => _ballData.Position.Y;
+    public float DrawX => _ballData.Position.X - _ballData.Radius / 2f;
+    public float DrawY => _ballData.Position.Y - _ballData.Radius / 2f;
     public float Radius => _ballData.Radius;
     public float Weight => _ballData.Weight;
+    public int Id => _ballData.id;
     private static BoardData _boardData;
 
     public static void SetBoardData(BoardData boardData)
@@ -55,19 +58,11 @@ public class BallLogic : INotifyPropertyChanged
         if (distance == 0f)
             return;
 
-        // Position correction to prevent overlap
-        if (distance < minDistance)
-        {
-            float overlap = minDistance - distance;
-            Vector2 correction = delta / distance * (overlap / 2f);
-            _ballData.Position -= correction;
-            other._ballData.Position += correction;
-        }
 
         Vector2 collisionNormal = Vector2.Normalize(delta);
         Vector2 relativeVelocity = other.Velocity - this.Velocity;
 
-        float restitution = 0.8f; // Slightly less bouncy for stability
+        float restitution = 1.0f; // Fully elastic collisions
         float velocityAlongNormal = Vector2.Dot(relativeVelocity, collisionNormal);
 
         if (velocityAlongNormal > 0) return; // Balls are moving apart
@@ -88,50 +83,32 @@ public class BallLogic : INotifyPropertyChanged
 
     public void ChangePosition()
     {
-        int subSteps = 4; // Number of sub-steps
-        double subDeltaTime = 16.67 / subSteps;
+        _ballData.Position += new Vector2(_ballData.Velocity.X * _ballData.Speed, _ballData.Velocity.Y * _ballData.Speed);
+        Vector2 normal = Vector2.Zero;
 
-        for (int i = 0; i < subSteps; i++)
+        if (_ballData.Position.X - _ballData.Radius / 2f < _boardData.XOffset)
         {
-            _ballData.Position += new Vector2(_ballData.Velocity.X * _ballData.Speed, _ballData.Velocity.Y * _ballData.Speed);
-            Vector2 normal = Vector2.Zero;
-
-            if (_ballData.Position.X - _ballData.Radius < _boardData.XOffset)
-            {
-                var position = _ballData.Position;
-                position.X = _ballData.Radius + _boardData.XOffset;
-                _ballData.Position = position;
-                normal = Vector2.UnitX;
-            }
-            else if (_ballData.Position.X + _ballData.Radius > _boardData.Width)
-            {
-                var position = _ballData.Position;
-                position.X = _boardData.Width - _ballData.Radius;
-                _ballData.Position = position;
-                normal = -Vector2.UnitX;
-            }
-
-            if (_ballData.Position.Y - _ballData.Radius < _boardData.YOffset)
-            {
-                var position = _ballData.Position;
-                position.Y = _ballData.Radius + _boardData.YOffset;
-                _ballData.Position = position;
-                normal = Vector2.UnitY;
-            }
-            else if (_ballData.Position.Y + _ballData.Radius > _boardData.Height)
-            {
-                var position = _ballData.Position;
-                position.Y = _boardData.Height - _ballData.Radius;
-                _ballData.Position = position;
-                normal = -Vector2.UnitY;
-            }
-
-
-            if (normal != Vector2.Zero)
-                _ballData.Velocity = Vector2.Reflect(_ballData.Velocity, normal);
+            normal = Vector2.UnitX;
         }
-        RaisePropertyChanged(nameof(X));
-        RaisePropertyChanged(nameof(Y));
+        else if (_ballData.Position.X + _ballData.Radius / 2f > _boardData.Width)
+        {
+            normal = -Vector2.UnitX;
+        }
+
+        if (_ballData.Position.Y - _ballData.Radius / 2f < _boardData.YOffset)
+        {
+            normal = Vector2.UnitY;
+        }
+        else if (_ballData.Position.Y + _ballData.Radius / 2f > _boardData.Height)
+        {
+            normal = -Vector2.UnitY;
+        }
+
+
+        if (normal != Vector2.Zero)
+             _ballData.Velocity = Vector2.Reflect(_ballData.Velocity, normal);
+        RaisePropertyChanged(nameof(DrawX));
+        RaisePropertyChanged(nameof(DrawY));
     }
 
 

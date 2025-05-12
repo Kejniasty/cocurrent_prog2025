@@ -52,9 +52,9 @@ namespace PresentationModel.Tests
         public void GetBallAmount_ReturnsExpectedValue()
         {
             int expectedCount = 3;
-            logicMock.Balls.Add(new BallLogic(new BallData(Vector2.Zero, Vector2.Zero, 0,0)));
-            logicMock.Balls.Add(new BallLogic(new BallData(Vector2.Zero, Vector2.Zero, 0,0)));
-            logicMock.Balls.Add(new BallLogic(new BallData(Vector2.Zero, Vector2.Zero, 0,0)));
+            logicMock.Balls.Add(new BallLogic(new BallData(Vector2.Zero, Vector2.Zero, 0, 0, 0)));
+            logicMock.Balls.Add(new BallLogic(new BallData(Vector2.Zero, Vector2.Zero, 0, 0, 0)));
+            logicMock.Balls.Add(new BallLogic(new BallData(Vector2.Zero, Vector2.Zero, 0, 0, 0)));
 
             int actualCount = model.GetBallAmount();
             Assert.AreEqual(expectedCount, actualCount);
@@ -70,7 +70,7 @@ namespace PresentationModel.Tests
 
             public override BoardData Board => new BoardData(500, 500, -20, -10);
 
-            public override BallLogic CreateBall(Vector2 pos, int radius)
+            public override BallLogic CreateBall(Vector2 pos, int radius, int id)
             {
                 throw new System.NotImplementedException();
             }
@@ -79,7 +79,7 @@ namespace PresentationModel.Tests
             {
                 for (int i = 0; i < count; i++)
                 {
-                    Balls.Add(new BallLogic(new BallData(Vector2.Zero, Vector2.Zero, 0,0)));
+                    Balls.Add(new BallLogic(new BallData(Vector2.Zero, Vector2.Zero, 0,0,0)));
                 }
             }
 
