@@ -14,5 +14,6 @@ public class BoardData
         Height = height;
         YOffset = y_offset;
         XOffset = x_offset;
+
     }
 }
