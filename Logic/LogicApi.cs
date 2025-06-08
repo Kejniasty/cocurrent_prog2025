@@ -20,6 +20,8 @@ namespace Logic
 
         private CancellationTokenSource _cancelTokenSource;
         private List<Task> _tasks = new List<Task>();
+        private Task _loggingTask; // Dedicated task for logging
+
 
         public LogicApi()
         {
@@ -28,46 +30,48 @@ namespace Logic
 
             // Pass the BoardData instance to BallLogic using BallLogic.SetBoardData
             BallLogic.SetBoardData(Board);
-
-            // Initialize the timer for logging every 10 seconds
-            _logTimer = new System.Timers.Timer(10000); // 10 seconds
-            _logTimer.Elapsed += LogBallsState;
-            _logTimer.AutoReset = true; // Repeat every 10 seconds
         }
 
-        private void LogBallsState(object sender, ElapsedEventArgs e)
+        private async Task RunLoggingLoop(CancellationToken cancellationToken)
         {
-            lock (_lock)
+            try
             {
-                try
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-                    var ballsSnapshot = Balls.ToList(); // Create a snapshot to avoid collection modification issues
-
-                    using (StreamWriter writer = new StreamWriter(_logFilePath, true))
+                    List<(int, float, float, Vector2)> ballsSnapshot;
+                    lock (_lock)
                     {
-                        writer.WriteLine($"Timestamp: {timestamp}");
-                        foreach (var ball in ballsSnapshot)
-                        {
-                            writer.WriteLine($"Ball ID: {ball.Id}, Position: ({ball.X}, {ball.Y}), Velocity: ({ball.Velocity.X}, {ball.Velocity.Y})");
-                        }
-                        writer.WriteLine(); // Add a blank line for readability
+                        // Create a snapshot of ball data to pass to the data layer
+                        ballsSnapshot = Balls.Select(ball => (ball.Id, ball.X, ball.Y, ball.Velocity)).ToList();
                     }
-                }
-                catch (Exception ex)
-                {
-                    // Handle potential file access errors (e.g., file in use)
-                    Console.WriteLine($"Error writing to log file: {ex.Message}");
+                    _dataAPI.LogBallsState(ballsSnapshot, _logFilePath);
+                    // Wait for 10 seconds before the next log
+                    await Task.Delay(10000, cancellationToken);
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancellation is requested
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in logging task: {ex.Message}");
+            }
         }
+           
 
         public override void RunSimulation()
         {
             _cancelTokenSource = new CancellationTokenSource();
 
-            // Start the logging timer
-            _logTimer.Start();
+            // Start the logging task on a dedicated thread
+            _loggingTask = Task.Factory.StartNew(
+                () => RunLoggingLoop(_cancelTokenSource.Token).GetAwaiter().GetResult(),
+                _cancelTokenSource.Token,
+                TaskCreationOptions.LongRunning, 
+                TaskScheduler.Default
+            );
+            _tasks.Add(_loggingTask);
 
             // Add Barrier object and set initial count to number of balls
             Barrier barrier = new Barrier(Balls.Count);
@@ -174,8 +178,8 @@ namespace Logic
         public static Vector2 GenerateRandomVector2InRange(Random random, float minValue1, float maxValue1,
             float minValue2, float maxValue2)
         {
-            return (Vector2)(new Vector2(GenerateRandomFloatInRange(random, minValue1, maxValue1),
-                GenerateRandomFloatInRange(random, minValue2, maxValue2)));
+            return new Vector2(GenerateRandomFloatInRange(random, minValue1, maxValue1),
+                GenerateRandomFloatInRange(random, minValue2, maxValue2));
         }
     }
 }
