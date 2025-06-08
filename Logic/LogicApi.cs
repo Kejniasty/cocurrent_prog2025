@@ -1,18 +1,24 @@
 ﻿using System.Collections.ObjectModel;
 using System.Numerics;
 using Data;
+using System.Timers;
+using System;
+using System.IO;
+using System.Threading;
 
 namespace Logic
 {
     internal class LogicApi : LogicAbstractAPI
     {
         private readonly DataAbstractAPI _dataAPI;
+        private readonly object _lock = new object();
+        private readonly System.Timers.Timer _logTimer;
+        private readonly string _logFilePath = "simulation_log.txt";
 
-        // Pass the BoardData instance to BallLogic using BallLogic.SetBoardData
         public override BoardData Board { get; }
         public override ObservableCollection<BallLogic> Balls { get; } = new ObservableCollection<BallLogic>();
 
-        private CancellationToken _cancelToken;
+        private CancellationTokenSource _cancelTokenSource;
         private List<Task> _tasks = new List<Task>();
 
         public LogicApi()
@@ -22,11 +28,46 @@ namespace Logic
 
             // Pass the BoardData instance to BallLogic using BallLogic.SetBoardData
             BallLogic.SetBoardData(Board);
+
+            // Initialize the timer for logging every 10 seconds
+            _logTimer = new System.Timers.Timer(10000); // 10 seconds
+            _logTimer.Elapsed += LogBallsState;
+            _logTimer.AutoReset = true; // Repeat every 10 seconds
+        }
+
+        private void LogBallsState(object sender, ElapsedEventArgs e)
+        {
+            lock (_lock)
+            {
+                try
+                {
+                    var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                    var ballsSnapshot = Balls.ToList(); // Create a snapshot to avoid collection modification issues
+
+                    using (StreamWriter writer = new StreamWriter(_logFilePath, true))
+                    {
+                        writer.WriteLine($"Timestamp: {timestamp}");
+                        foreach (var ball in ballsSnapshot)
+                        {
+                            writer.WriteLine($"Ball ID: {ball.Id}, Position: ({ball.X}, {ball.Y}), Velocity: ({ball.Velocity.X}, {ball.Velocity.Y})");
+                        }
+                        writer.WriteLine(); // Add a blank line for readability
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle potential file access errors (e.g., file in use)
+                    Console.WriteLine($"Error writing to log file: {ex.Message}");
+                }
+            }
         }
 
         public override void RunSimulation()
         {
-            _cancelToken = CancellationToken.None;
+            _cancelTokenSource = new CancellationTokenSource();
+
+            // Start the logging timer
+            _logTimer.Start();
 
             // Add Barrier object and set initial count to number of balls
             Barrier barrier = new Barrier(Balls.Count);
@@ -44,7 +85,7 @@ namespace Logic
 
                         try
                         {
-                            _cancelToken.ThrowIfCancellationRequested();
+                            _cancelTokenSource.Token.ThrowIfCancellationRequested();
                         }
                         catch (OperationCanceledException)
                         {
@@ -67,16 +108,19 @@ namespace Logic
 
                         ball.ChangePosition();
                     }
-                });
+                }, _cancelTokenSource.Token);
 
                 _tasks.Add(task);
             }
         }
 
-
         public override void StopSimulation()
         {
-            _cancelToken = new CancellationToken(true);
+            // Stop the logging timer
+            _logTimer.Stop();
+
+            // Cancel the simulation tasks
+            _cancelTokenSource?.Cancel();
 
             foreach (Task task in _tasks)
             {
@@ -85,6 +129,10 @@ namespace Logic
 
             _tasks.Clear();
             Balls.Clear();
+
+            // Dispose of the cancellation token source
+            _cancelTokenSource?.Dispose();
+            _cancelTokenSource = null;
         }
 
         public override BallLogic CreateBall(Vector2 pos, int radius, int id)
