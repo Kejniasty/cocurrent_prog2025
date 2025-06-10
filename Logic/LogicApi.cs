@@ -12,7 +12,6 @@ namespace Logic
     {
         private readonly DataAbstractAPI _dataAPI;
         private readonly object _lock = new object();
-        private readonly System.Timers.Timer _logTimer;
         private readonly string _logFilePath = "simulation_log.txt";
 
         public override BoardData Board { get; }
@@ -32,45 +31,51 @@ namespace Logic
             BallLogic.SetBoardData(Board);
         }
 
-        private async Task RunLoggingLoop(CancellationToken cancellationToken)
+        private void RunLoggingLoop(CancellationToken cancellationToken)
         {
-            try
+            var timer = new System.Timers.Timer(10000); // 10 seconds
+            timer.Elapsed += (sender, e) =>
             {
-                while (!cancellationToken.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    timer.Stop();
+                    timer.Dispose();
+                    return;
+                }
+
+                try
                 {
                     List<(int, float, float, Vector2)> ballsSnapshot;
                     lock (_lock)
                     {
-                        // Create a snapshot of ball data to pass to the data layer
                         ballsSnapshot = Balls.Select(ball => (ball.Id, ball.X, ball.Y, ball.Velocity)).ToList();
                     }
                     _dataAPI.LogBallsState(ballsSnapshot, _logFilePath);
-                    // Wait for 10 seconds before the next log
-                    await Task.Delay(10000, cancellationToken);
                 }
-            }
-            catch (OperationCanceledException)
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in logging task: {ex.Message}");
+                }
+            };
+
+            timer.AutoReset = true; // Repeat every 10 seconds
+            timer.Start();
+
+            // Keep the method alive until cancellation
+            cancellationToken.Register(() =>
             {
-                // Expected when cancellation is requested
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in logging task: {ex.Message}");
-            }
+                timer.Stop();
+                timer.Dispose();
+            });
         }
-           
+
 
         public override void RunSimulation()
         {
             _cancelTokenSource = new CancellationTokenSource();
 
             // Start the logging task on a dedicated thread
-            _loggingTask = Task.Factory.StartNew(
-                () => RunLoggingLoop(_cancelTokenSource.Token).GetAwaiter().GetResult(),
-                _cancelTokenSource.Token,
-                TaskCreationOptions.LongRunning, 
-                TaskScheduler.Default
-            );
+            _loggingTask = Task.Run(() => RunLoggingLoop(_cancelTokenSource.Token), _cancelTokenSource.Token);
             _tasks.Add(_loggingTask);
 
             // Add Barrier object and set initial count to number of balls
@@ -120,8 +125,6 @@ namespace Logic
 
         public override void StopSimulation()
         {
-            // Stop the logging timer
-            _logTimer.Stop();
 
             // Cancel the simulation tasks
             _cancelTokenSource?.Cancel();
